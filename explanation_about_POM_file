@@ -1,0 +1,202 @@
+# Maven POM.xml Complete Explanation
+
+## Project Overview
+
+This is a Maven Project Object Model (POM) file for a Chess Game application with AI capabilities. It defines how the project should be built, what dependencies it needs, and how it should be packaged.
+
+---
+
+## Basic Project Information
+
+### Project Coordinates
+- **Group ID**: `org.example` - The organization or group that owns this project
+- **Artifact ID**: `chess_game` - The name of the project/artifact
+- **Version**: `1.0-SNAPSHOT` - Current version (SNAPSHOT means it's under development)
+- **Packaging**: `jar` - Will be packaged as a Java Archive file
+- **Name**: `chess_game` - Human-readable project name
+
+---
+
+## Properties Section
+
+These are variables used throughout the POM file:
+
+### Build Properties
+- **project.build.sourceEncoding**: `UTF-8` - Character encoding for source files
+- **java.version**: `21` - Java version being used
+- **maven.compiler.source**: Java 21 - Source code compatibility level
+- **maven.compiler.target**: Java 21 - Target bytecode compatibility level
+
+### Dependency Versions
+- **junit.version**: `5.10.2` - JUnit testing framework version
+- **auth.version**: `1.30.0` - Google authentication library version
+- **protos.version**: `2.37.0` - Google protocol buffers version
+- **gax.version**: `2.49.0` - Google API extensions version
+- **gson.version**: `2.11.0` - Google JSON library version
+
+---
+
+## Dependencies Section
+
+These are the external libraries your project needs:
+
+### 1. JUnit Jupiter (Testing)
+```
+Group: org.junit.jupiter
+Artifact: junit-jupiter
+Version: 5.10.2
+Scope: test (only used during testing)
+```
+**Purpose**: Modern testing framework for writing and running unit tests
+
+### 2. Google Generative AI
+```
+Group: com.google.genai
+Artifact: google-genai
+Version: 1.26.0
+```
+**Purpose**: Google's Generative AI SDK for integrating AI capabilities (likely for the chess AI opponent)
+
+### 3. Gson
+```
+Group: com.google.code.gson
+Artifact: gson
+Version: 2.11.0
+```
+**Purpose**: Library for converting Java objects to/from JSON format
+
+### 4. Google Auth Library
+```
+Group: com.google.auth
+Artifact: google-auth-library-oauth2-http
+Version: 1.30.0
+```
+**Purpose**: Handles OAuth2 authentication for Google services
+
+### 5. Proto Google Common Protos
+```
+Group: com.google.api.grpc
+Artifact: proto-google-common-protos
+Version: 2.37.0
+```
+**Purpose**: Common protocol buffer definitions used by Google APIs
+
+### 6. GAX (Google API Extensions)
+```
+Group: com.google.api
+Artifact: gax
+Version: 2.49.0
+```
+**Purpose**: Google API client library extensions
+
+### 7. Java Dotenv
+```
+Group: io.github.cdimascio
+Artifact: java-dotenv
+Version: 5.2.2
+```
+**Purpose**: Loads environment variables from a .env file (useful for storing API keys securely)
+
+---
+
+## Build Plugins Section
+
+These plugins control how the project is compiled, tested, and packaged:
+
+### 1. Maven Compiler Plugin
+**Version**: 3.13.0
+
+**Configuration**:
+- Source: Java 21
+- Target: Java 21
+
+**Purpose**: Compiles Java source code to bytecode
+
+---
+
+### 2. Maven Surefire Plugin
+**Version**: 3.2.3
+
+**Purpose**: Runs unit tests during the build process
+
+---
+
+### 3. Maven Shade Plugin
+**Version**: 3.5.2
+
+**Purpose**: Creates an "uber-jar" (fat jar) containing all dependencies
+
+**Configuration Details**:
+- **Phase**: `package` - Runs during the package phase
+- **Main Class**: `org.example.ChessGame` - Entry point for the application
+- **Classifier**: `shaded` - Adds "-shaded" to the jar filename
+- **createDependencyReducedPom**: `false` - Doesn't create a reduced POM
+- **shadedArtifactAttached**: `true` - Attaches the shaded jar to the project
+- **skipOriginalArtifactAttachments**: `true` - Skips the original jar
+
+**What it produces**: `chess_game-1.0-SNAPSHOT-shaded.jar` (a single executable jar with all dependencies included)
+
+---
+
+### 4. JPackage Maven Plugin
+**Version**: 1.7.1
+
+**Purpose**: Creates a native installer for your application
+
+**Configuration Details**:
+- **Phase**: `install` - Runs during the install phase
+- **App Name**: `ChessGameWithAI`
+- **App Version**: `1.0-SNAPSHOT`
+- **Vendor**: `Org.Example Development`
+- **Input Directory**: `${project.build.directory}` (target folder)
+- **Main Jar**: `chess_game-1.0-SNAPSHOT-shaded.jar`
+- **Main Class**: `org.example.ChessGame`
+- **Type**: `DEB` - Creates a Debian package for Linux
+- **Runtime Provided**: `false` - Bundles Java runtime with the installer
+- **Destination**: `${project.build.directory}/installer`
+- **Added Modules**: `java.desktop` - Includes Java desktop module (needed for GUI)
+
+**What it produces**: A `.deb` installer file that can be installed on Debian-based Linux systems (Ubuntu, Debian, etc.)
+
+---
+
+## Build Process Summary
+
+When you run `mvn install`, here's what happens:
+
+1. **Compile**: Source code is compiled using Java 21
+2. **Test**: JUnit tests are executed
+3. **Package**: A regular jar is created
+4. **Shade**: All dependencies are bundled into `chess_game-1.0-SNAPSHOT-shaded.jar`
+5. **Install**: The shaded jar is installed to your local Maven repository
+6. **JPackage**: A native `.deb` installer is created in the `target/installer` directory
+
+---
+
+## Key Features of This Setup
+
+1. **AI Integration**: Uses Google's Generative AI for chess AI opponent
+2. **Self-Contained**: Creates an executable jar with all dependencies
+3. **Native Installer**: Generates a Linux installer for easy distribution
+4. **Modern Java**: Uses Java 21 features
+5. **Secure Configuration**: Uses dotenv for managing API keys
+6. **Testable**: Includes JUnit 5 for testing
+
+---
+
+## Common Commands
+
+- **Compile**: `mvn compile`
+- **Test**: `mvn test`
+- **Create Jar**: `mvn package`
+- **Create Installer**: `mvn install`
+- **Clean Build**: `mvn clean install`
+
+---
+
+## File Outputs
+
+After running `mvn install`, you'll find:
+
+- `target/chess_game-1.0-SNAPSHOT-shaded.jar` - Executable jar with all dependencies
+- `target/installer/ChessGameWithAI_1.0-SNAPSHOT-1_amd64.deb` - Linux installer package
