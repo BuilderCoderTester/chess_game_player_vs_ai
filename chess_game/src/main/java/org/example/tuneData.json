@@ -1,0 +1,29 @@
+//{
+//  "play": {
+//    "whtie": {
+//      "fen": {},
+//      "self_moves": {},
+//      "black_moves": {},
+//      "reverse_moves": {},
+//      "no_of_moves_genrarte": {},
+//      "per_moevs_score": {}
+//    },
+//    "black": {
+//      "fen": {},
+//      "moves": {},
+//      "self_moves": {},
+//      "white_moves": {},
+//      "reverse_moves": {},
+//      "no_of_moves_genrarte": {},
+//      "per_moevs_score": {}
+//    }
+//  }
+//}
+//
+//
+//"text_data" : ["
+//  Analyze the chess board : [FEN] ,
+//  see every pices position ,
+//  and based on this provide the moves for white and black pieces
+//  also provide the counter moves also
+//"]

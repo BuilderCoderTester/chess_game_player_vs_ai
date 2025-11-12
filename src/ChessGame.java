@@ -48,7 +48,7 @@ public class ChessGame extends JPanel {
                 String name = color + "_" + type;
                 try {
                     BufferedImage img = ImageIO.read(new File(
-                            "/media/anurag/20A8C086A8C05BC2/Projects/$ML_PATH/chessGameinJava/public/" + name
+                            "/media/anurag/Windows/Projects/$ML_PATH/chessGameinJava/public/" + name
                                     + ".png"));
                     Image scaled = img.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, Image.SCALE_SMOOTH);
                     BufferedImage buffered = new BufferedImage(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.TYPE_INT_ARGB);
@@ -113,39 +113,39 @@ public class ChessGame extends JPanel {
     }
 
     private void handleClick(int row, int col) {
-    if (selectedRow == -1) {
-        // First click: select piece
-        String piece = board[row][col];
-        if (!piece.isEmpty() && ((whiteTurn && piece.startsWith("w")) || (!whiteTurn && piece.startsWith("b")))) {
-            selectedRow = row;
-            selectedCol = col;
+        if (selectedRow == -1) {
+            // First click: select piece
+            String piece = board[row][col];
+            if (!piece.isEmpty() && ((whiteTurn && piece.startsWith("w")) || (!whiteTurn && piece.startsWith("b")))) {
+                selectedRow = row;
+                selectedCol = col;
+                repaint();
+            }
+        } else {
+            // Second click: try move
+
+            String selectedPiece = board[selectedRow][selectedCol];
+            if (isValidMove(selectedPiece, selectedRow, selectedCol, row, col)) {
+                // Handle pawn promotion before placing the piece
+                String finalPiece = PawnPromotion.handlePawnPromotion(selectedPiece, row, col, this);
+
+                // Make the move
+                board[row][col] = finalPiece;
+                board[selectedRow][selectedCol] = "";
+                whiteTurn = !whiteTurn;
+
+                // Check for game end
+                if (selectedPiece.startsWith("w")) {
+                    checkWin("b_king");
+                } else {
+                    checkWin("w_king");
+                }
+            }
+            selectedRow = -1;
+            selectedCol = -1;
             repaint();
         }
-    } else {
-        // Second click: try move
-        String selectedPiece = board[selectedRow][selectedCol];
-        if (isValidMove(selectedPiece, selectedRow, selectedCol, row, col)) {
-            // Handle pawn promotion before placing the piece
-            String finalPiece = PawnPromotion.handlePawnPromotion(selectedPiece, row, col,this);
-            
-            // Make the move
-            board[row][col] = finalPiece;
-            board[selectedRow][selectedCol] = "";
-            whiteTurn = !whiteTurn;
-            
-            // Check for game end
-            if (selectedPiece.startsWith("w")) {
-                checkWin("b_king");
-            } else {
-                checkWin("w_king");
-            }
-        }
-        selectedRow = -1;
-        selectedCol = -1;
-        repaint();
     }
-}
-
 
     private boolean isValidMove(String selectedpiece, int fromRow, int fromCol, int toRow, int toCol) {
         return (ChessLogic.selectedPieceLegalMove(board, selectedpiece, fromRow, fromCol, toRow, toCol));
