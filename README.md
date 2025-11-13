@@ -1,5 +1,5 @@
 # Chess Game with AI Integration
-
+The LINK to the GAME : [https://buildergame.itch.io/chess-ai-game]
 ## Overview
 
 This is a chess game project that offers multiple gameplay modes with AI integration using LLM (Gemini) and Stockfish engine.
