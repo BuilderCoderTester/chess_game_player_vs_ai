@@ -1,0 +1,302 @@
+# Chess Game - Platform Independent Distribution
+
+A cross-platform Chess game built with Java and JavaFX, featuring native installers for Windows, macOS, and Linux.
+
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Building the Application](#building-the-application)
+- [Platform-Specific Builds](#platform-specific-builds)
+- [Running the Application](#running-the-application)
+- [Troubleshooting](#troubleshooting)
+
+## Features
+- Cross-platform support (Windows, macOS, Linux)
+- Native installer generation
+- Bundled Java runtime (no separate JRE installation required)
+- Desktop shortcuts and menu integration
+
+## Prerequisites
+
+### All Platforms
+- JDK 17 or higher
+- Apache Maven 3.6+
+- Git (optional, for cloning)
+
+### Platform-Specific Tools
+
+#### Windows
+- WiX Toolset 3.11+ (for MSI installer)
+- Add WiX to system PATH
+
+#### macOS
+- Xcode Command Line Tools
+- Valid Apple Developer certificate (for signed apps)
+
+#### Linux
+- DEB systems: `dpkg-dev`, `fakeroot`
+- RPM systems: `rpm-build`
+
+## Building the Application
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd chess-game
+```
+
+### 2. Build the Shaded JAR
+```bash
+mvn clean package
+```
+
+### 3. Generate Platform Installers
+
+#### Build All Platforms (from respective OS)
+```bash
+mvn clean install
+```
+
+#### Build Specific Platform
+
+**Windows:**
+```bash
+mvn clean install -P windows
+```
+
+**macOS:**
+```bash
+mvn clean install -P macos
+```
+
+**Linux DEB:**
+```bash
+mvn clean install -P linux-deb
+```
+
+**Linux RPM:**
+```bash
+mvn clean install -P linux-rpm
+```
+
+## Maven Configuration
+
+### Complete pom.xml Plugin Configuration
+
+```xml
+<plugin>
+    <groupId>org.panteleyev</groupId>
+    <artifactId>jpackage-maven-plugin</artifactId>
+    <version>1.7.1</version>
+    <executions>
+        <!-- Windows MSI -->
+        <execution>
+            <id>jpackage-windows</id>
+            <phase>install</phase>
+            <goals><goal>jpackage</goal></goals>
+            <configuration>
+                <appName>ChessGame</appName>
+                <appVersion>1.0</appVersion>
+                <vendor>Org.Example Development</vendor>
+                <icon>${project.basedir}/src/main/resources/icon.ico</icon>
+                <input>${project.build.directory}</input>
+                <mainJar>${project.artifactId}-${project.version}-shaded.jar</mainJar>
+                <mainClass>org.example.ChessGame</mainClass>
+                <type>MSI</type>
+                <runtimeProvided>false</runtimeProvided>
+                <destination>${user.home}/Desktop/installer</destination>
+                <winDirChooser>true</winDirChooser>
+                <winShortcut>true</winShortcut>
+                <winMenu>true</winMenu>
+                <winMenuGroup>Games</winMenuGroup>
+                <addModules>
+                    <addModule>java.desktop</addModule>
+                </addModules>
+            </configuration>
+        </execution>
+
+        <!-- macOS DMG -->
+        <execution>
+            <id>jpackage-mac</id>
+            <phase>install</phase>
+            <goals><goal>jpackage</goal></goals>
+            <configuration>
+                <appName>ChessGame</appName>
+                <appVersion>1.0</appVersion>
+                <vendor>Org.Example Development</vendor>
+                <icon>${project.basedir}/src/main/resources/icon.icns</icon>
+                <input>${project.build.directory}</input>
+                <mainJar>${project.artifactId}-${project.version}-shaded.jar</mainJar>
+                <mainClass>org.example.ChessGame</mainClass>
+                <type>DMG</type>
+                <runtimeProvided>false</runtimeProvided>
+                <destination>${user.home}/Desktop/installer</destination>
+                <addModules>
+                    <addModule>java.desktop</addModule>
+                </addModules>
+            </configuration>
+        </execution>
+
+        <!-- Linux DEB -->
+        <execution>
+            <id>jpackage-linux-deb</id>
+            <phase>install</phase>
+            <goals><goal>jpackage</goal></goals>
+            <configuration>
+                <appName>ChessGame</appName>
+                <appVersion>1.0</appVersion>
+                <vendor>Org.Example Development</vendor>
+                <icon>${project.basedir}/src/main/resources/icon.png</icon>
+                <input>${project.build.directory}</input>
+                <mainJar>${project.artifactId}-${project.version}-shaded.jar</mainJar>
+                <mainClass>org.example.ChessGame</mainClass>
+                <type>DEB</type>
+                <runtimeProvided>false</runtimeProvided>
+                <destination>${user.home}/Desktop/installer</destination>
+                <linuxShortcut>true</linuxShortcut>
+                <linuxPackageName>chessgame</linuxPackageName>
+                <linuxDebMaintainer>sarkaranurag556@gmail.com</linuxDebMaintainer>
+                <linuxAppCategory>Game</linuxAppCategory>
+                <linuxMenuGroup>Games</linuxMenuGroup>
+                <addModules>
+                    <addModule>java.desktop</addModule>
+                </addModules>
+            </configuration>
+        </execution>
+
+        <!-- Linux RPM -->
+        <execution>
+            <id>jpackage-linux-rpm</id>
+            <phase>install</phase>
+            <goals><goal>jpackage</goal></goals>
+            <configuration>
+                <appName>ChessGame</appName>
+                <appVersion>1.0</appVersion>
+                <vendor>Org.Example Development</vendor>
+                <icon>${project.basedir}/src/main/resources/icon.png</icon>
+                <input>${project.build.directory}</input>
+                <mainJar>${project.artifactId}-${project.version}-shaded.jar</mainJar>
+                <mainClass>org.example.ChessGame</mainClass>
+                <type>RPM</type>
+                <runtimeProvided>false</runtimeProvided>
+                <destination>${user.home}/Desktop/installer</destination>
+                <linuxShortcut>true</linuxShortcut>
+                <linuxPackageName>chessgame</linuxPackageName>
+                <linuxRpmLicenseType>MIT</linuxRpmLicenseType>
+                <linuxAppCategory>Game</linuxAppCategory>
+                <linuxMenuGroup>Games</linuxMenuGroup>
+                <addModules>
+                    <addModule>java.desktop</addModule>
+                </addModules>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+### Maven Profiles (Optional)
+
+Add to your pom.xml for selective builds:
+
+```xml
+<profiles>
+    <profile>
+        <id>windows</id>
+        <activation>
+            <os><family>windows</family></os>
+        </activation>
+        <!-- Windows-specific configuration -->
+    </profile>
+    
+    <profile>
+        <id>macos</id>
+        <activation>
+            <os><family>mac</family></os>
+        </activation>
+        <!-- macOS-specific configuration -->
+    </profile>
+    
+    <profile>
+        <id>linux-deb</id>
+        <activation>
+            <os><family>unix</family></os>
+        </activation>
+        <!-- Linux DEB configuration -->
+    </profile>
+    
+    <profile>
+        <id>linux-rpm</id>
+        <!-- Linux RPM configuration -->
+    </profile>
+</profiles>
+```
+
+## Icon Requirements
+
+Place platform-specific icons in `src/main/resources/`:
+
+- **Windows**: `icon.ico` (256x256, 128x128, 64x64, 48x48, 32x32, 16x16)
+- **macOS**: `icon.icns` (1024x1024 recommended)
+- **Linux**: `icon.png` (512x512 recommended)
+
+## Installation
+
+### Windows
+1. Locate `ChessGame-1.0.msi` in `~/Desktop/installer`
+2. Double-click to run installer
+3. Follow installation wizard
+4. Launch from Start Menu or Desktop shortcut
+
+### macOS
+1. Locate `ChessGame-1.0.dmg` in `~/Desktop/installer`
+2. Double-click to mount
+3. Drag ChessGame.app to Applications folder
+4. Launch from Applications or Launchpad
+
+### Linux (DEB)
+```bash
+sudo dpkg -i ~/Desktop/installer/chessgame_1.0_amd64.deb
+```
+
+### Linux (RPM)
+```bash
+sudo rpm -i ~/Desktop/installer/chessgame-1.0.rpm
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Build fails with "jpackage not found"**
+- Ensure JDK 17+ is installed (jpackage included since JDK 14)
+- Verify JAVA_HOME points to correct JDK
+
+**Windows: "WiX Toolset not found"**
+- Install WiX from https://wixtoolset.org/
+- Add WiX bin directory to PATH
+
+**macOS: "Code signing failed"**
+- For development: Skip signing with `--mac-sign false`
+- For distribution: Obtain Apple Developer certificate
+
+**Linux: "dpkg-dev not found"**
+```bash
+sudo apt-get install dpkg-dev fakeroot
+```
+
+**Icon not appearing**
+- Verify icon format matches platform requirements
+- Check icon file path in pom.xml
+
+### Getting Help
+- Report issues: [GitHub Issues](<repository-issues-url>)
+- Email: sarkaranurag556@gmail.com
+
+## License
+[Specify your license here]
+
+## Credits
+Developed by Org.Example Development
+
+---
+**Note**: You must build installers on the target platform. Cross-compilation is not supported by jpackage.
