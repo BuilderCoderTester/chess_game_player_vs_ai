@@ -31,9 +31,11 @@ public class ChessBoardGUI {
             for (String type : types) {
                 String name = color + "_" + type;
                 try {
-                    BufferedImage img = ImageIO.read(new File(
-                            "/media/anurag/Windows/Projects/$ML_PATH/chessGameinJava/public/" + name
-                                    + ".png"));
+//                    BufferedImage img = ImageIO.read(new File(
+//                            "/media/anurag/Windows/Projects/$ML_PATH/chessGameinJava/public/" + name
+//                                    + ".png"));
+                    BufferedImage img = ImageIO.read(
+                            getClass().getResourceAsStream("/" + name + ".png"));
                     Image scaled = img.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, Image.SCALE_SMOOTH);
                     BufferedImage buffered = new BufferedImage(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2 = buffered.createGraphics();

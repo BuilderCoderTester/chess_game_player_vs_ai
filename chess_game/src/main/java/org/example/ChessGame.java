@@ -1,74 +1,68 @@
 package org.example;
 
+
+//Package import
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.util.Collections;
 import java.util.List;
-import io.github.cdimascio.dotenv.Dotenv;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.genai.Client;
 import org.example.GUI.ChessBoardGUI;
 import org.example.GUI.ChessFEN;
 
 public class ChessGame extends JPanel {
 
+//    local variable declaration
     private static final int WIDTH = 480, HEIGHT = 518;
     private boolean whiteTurn = true;
-
-
-    // ------------------- Hybrid AI -------------------
     private HybridChessAI hybridAI;
     public ChessFEN cfen;
     public ChessBoardGUI boardGui;
     boolean WhiteIsAi , BlackIsAi;
-    public ChessGame(boolean WhiteIsAi , boolean BlackIsAi) {
+
+//    defalut constructor
+    public ChessGame(){}
+//    parametrized constructor
+    public ChessGame(boolean WhiteIsAi , boolean BlackIsAi ) {
         this.WhiteIsAi = WhiteIsAi;
         this.BlackIsAi = BlackIsAi;
         this.boardGui = new ChessBoardGUI();
         this.cfen = new ChessFEN(this.boardGui);
 
-        try {
-
-            Dotenv dotenv = Dotenv.configure()
-                    .directory("/media/anurag/Windows/Projects/$ML_PATH/chessGameinJava/chess_game/.env")
-                    .load();
-            String apiKey = dotenv.get("GOOGLE_API_KEY");
-            // Create a Gemini client with your API key
-            Client client = Client.builder()
-                    .apiKey(apiKey)  // ✅ correct method
-                    .build();
-            GeminiMoveGenerator gemini = new GeminiMoveGenerator();
-            System.out.println("the gemini  :" + gemini);
-            StockFishEngine stockfish = new StockFishEngine("/media/anurag/1692710A9270F01B/stockfish-ubuntu-x86-64-avx2/stockfish/stockfish-ubuntu-x86-64-avx2");
-            System.out.println("the gemini  :" + stockfish);
-
-            hybridAI = new HybridChessAI(gemini, stockfish);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Add mouse listener for manual moves
+        if(WhiteIsAi == false && BlackIsAi == true){
+            try {
+                GeminiMoveGenerator gemini = new GeminiMoveGenerator();
+                System.out.println("the gemini  :" + gemini);
+                StockFishEngine stockfish = new StockFishEngine("/media/anurag/1692710A9270F01B/stockfish-ubuntu-x86-64-avx2/stockfish/stockfish-ubuntu-x86-64-avx2");
+                System.out.println("the gemini  :" + stockfish);
+                hybridAI = new HybridChessAI(gemini, stockfish);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    int row = e.getY() / boardGui.SQUARE_SIZE;
+                    int col = e.getX() / boardGui.SQUARE_SIZE;
+                    System.out.println("mouse clicked");
+                    handleClick(row, col);
+                }
+            });
+        } else if (WhiteIsAi == false && BlackIsAi == false) {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 int row = e.getY() / boardGui.SQUARE_SIZE;
                 int col = e.getX() / boardGui.SQUARE_SIZE;
                 System.out.println("mouse clicked");
-                handleClick(row, col);
+                handelClickManual(row, col);
             }
         });
+
+        }
+
     }
-
-
-
-
     @Override
     protected void paintComponent(Graphics g) {
         System.out.println("heh");
@@ -78,7 +72,30 @@ public class ChessGame extends JPanel {
         boardGui.drawSelection(g);
 
     }
-
+private void handelClickManual(int row , int col){
+        if(boardGui.selectedRow == -1){
+            String piece = boardGui.board[row][col];
+            if(!piece.isEmpty() && ((whiteTurn && piece.startsWith("w")) || (!whiteTurn && piece.startsWith("b")))){
+                boardGui.selectedRow = row;
+                boardGui.selectedCol = col;
+                repaint();
+            }
+        }
+        else {
+            String selectedPiece = boardGui.board[boardGui.selectedRow][boardGui.selectedCol];
+            if (isValidMove(selectedPiece, boardGui.selectedRow, boardGui.selectedCol, row, col)) {
+                String finalPiece = PawnPromotion.handlePawnPromotion(selectedPiece, row, col, this);
+                boardGui.board[row][col] = finalPiece;
+                boardGui.board[boardGui.selectedRow][boardGui.selectedCol] = "";
+                whiteTurn = !whiteTurn;
+                printBoard();
+                checkWin(selectedPiece.startsWith("w") ? "b_king" : "w_king");
+            }
+            boardGui.selectedRow = -1;
+            boardGui.selectedCol = -1;
+            repaint();
+        }
+}
 
 
     private void handleClick(int row, int col) {
@@ -89,7 +106,6 @@ public class ChessGame extends JPanel {
         if (boardGui.selectedRow == -1) {
             String piece = boardGui.board[row][col];
             if (!piece.isEmpty() && ((whiteTurn && piece.startsWith("w")) || (!whiteTurn && piece.startsWith("b")))) {
-//                System.out.println("reach point 1");
                 boardGui.selectedRow = row;
                 boardGui.selectedCol = col;
                 repaint();
@@ -97,19 +113,14 @@ public class ChessGame extends JPanel {
         } else {
             String selectedPiece = boardGui.board[boardGui.selectedRow][boardGui.selectedCol];
             if (isValidMove(selectedPiece, boardGui.selectedRow, boardGui.selectedCol, row, col)) {
-//                System.out.println("valid move.");
                 String finalPiece = PawnPromotion.handlePawnPromotion(selectedPiece, row, col, this);
                 boardGui.board[row][col] = finalPiece;
                 boardGui.board[boardGui.selectedRow][boardGui.selectedCol] = "";
                 whiteTurn = !whiteTurn;
                 printBoard();
                 checkWin(selectedPiece.startsWith("w") ? "b_king" : "w_king");
-
-                // AI move if it's now AI's turn
                 if (!whiteTurn){
                 handleAIMove();
-
-
                 }
             }
             boardGui.selectedRow = -1;
@@ -125,7 +136,6 @@ public class ChessGame extends JPanel {
                 if (piece == null || piece.isEmpty()) {
                     System.out.print(". ");
                 } else {
-                    // Show simple two-letter codes (e.g., wP, bK)
                     String shortPiece = piece.replace("w_", "w").replace("b_", "b");
                     System.out.print(shortPiece.substring(0, 2) + " ");
                 }
@@ -138,41 +148,13 @@ public class ChessGame extends JPanel {
     private boolean isValidMove(String selectedpiece, int fromRow, int fromCol, int toRow, int toCol) {
         return ChessLogic.selectedPieceLegalMove(boardGui.board, selectedpiece, fromRow, fromCol, toRow, toCol);
     }
-
-//    private void handleAIMove() {
-//        new Thread(() -> {
-//            try {
-//                String fen = cfen.generateFEN(whiteTurn);
-//                System.out.println("the FEN is : " + fen);
-//                String aiMove = hybridAI.getBestMove(fen);
-//
-//                int fromCol = aiMove.charAt(0) - 'a';
-//                int fromRow = 8 - Character.getNumericValue(aiMove.charAt(1));
-//                int toCol = aiMove.charAt(2) - 'a';
-//                int toRow = 8 - Character.getNumericValue(aiMove.charAt(3));
-//
-//                String piece = boardGui.board[fromRow][fromCol];
-//                boardGui.board[toRow][toCol] = piece;
-//                boardGui.board[fromRow][fromCol] = "";
-//                printBoard();
-//                whiteTurn = true;
-//                repaint();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }).start();
-//    }
-
     private void handleAIMove() {
         new Thread(() -> {
             try {
                 String fen = cfen.generateFEN(whiteTurn);
                 System.out.println("the FEN is : " + fen);
-
-                // get candidate moves (Gemini ideally returns many candidates)
                 List<String> candidates = Collections.singletonList(hybridAI.getBestMove(fen)); // adapt name
                 String chosen = null;
-
                 if (candidates != null) {
                     for (String aiMove : candidates) {
                         aiMove = aiMove.trim();
@@ -349,16 +331,53 @@ public class ChessGame extends JPanel {
 
             // When Start Game is clicked
             startButton.addActionListener(e -> {
-                boolean whiteIsAI = whiteDropdown.getSelectedItem().equals("AI");
-                boolean blackIsAI = blackDropdown.getSelectedItem().equals("AI");
+                String whiteSelection = (String) whiteDropdown.getSelectedItem();
+                String blackSelection = (String) blackDropdown.getSelectedItem();
 
-                // Remove selection panel and start the actual chess game
-                frame.getContentPane().removeAll();
-                ChessGame chessPanel = new ChessGame(whiteIsAI, blackIsAI);
-                frame.add(chessPanel);
-                frame.setSize(480, 518);
-                frame.revalidate();
-                frame.repaint();
+                if (whiteSelection.equals("AI") && blackSelection.equals("AI")) {
+                    System.out.println("Both sides are AI");
+                    frame.getContentPane().removeAll();
+                    ChessGame chessPanel = new ChessGame(true ,true);
+                    frame.add(chessPanel);
+                    frame.setSize(480, 518);
+                    frame.revalidate();
+                    frame.repaint();
+                }
+                else if (whiteSelection.equals("Manual") && blackSelection.equals("AI")) {
+                    System.out.println("White is Manual, Black is AI");
+                    frame.getContentPane().removeAll();
+                    ChessGame chessPanel = new ChessGame(false ,true);
+                    frame.add(chessPanel);
+                    frame.setSize(480, 518);
+                    frame.revalidate();
+                    frame.repaint();
+                }
+                else if (whiteSelection.equals("AI") && blackSelection.equals("Manual")) {
+                    System.out.println("White is AI, Black is Manual");
+                    frame.getContentPane().removeAll();
+                    ChessGame chessPanel = new ChessGame(true ,false);
+                    frame.add(chessPanel);
+                    frame.setSize(480, 518);
+                    frame.revalidate();
+                    frame.repaint();
+                }
+                else if (whiteSelection.equals("Manual") && blackSelection.equals("Manual")) {
+                    System.out.println("Both sides are Manual");
+                    frame.getContentPane().removeAll();
+                    ChessGame chessPanel = new ChessGame(false ,false);
+                    frame.add(chessPanel);
+                    frame.setSize(480, 518);
+                    frame.revalidate();
+                    frame.repaint();
+                }
+                else {
+                    System.out.println("Please choose valid options.");
+                }
+
+                System.out.println("the value of whiteAi is : " + whiteSelection);
+                System.out.println("the value of blackAi is : " + blackSelection);
+
+
             });
         });
     }
